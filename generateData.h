@@ -78,34 +78,34 @@ bool isFibonacciSeriesNumber(unsigned long int ulNumber)
 }
 
 //------------------------------------------------------------------------------
-class clPlayers;
-clPlayers   *ptrRootPlayer, *ptrNewPlayer, *ptrLastPlayer;            // root not required for a DLL, using it to save traversing from top to the bottom
+class clRPGPlayers;
+clRPGPlayers   *ptrRootPlayer, *ptrNewPlayer, *ptrLastPlayer;            // root not required for a DLL, using it to save traversing from top to the bottom
 
-class clPlayers
+class clRPGPlayers
 {
     private:                                            // Intentionally explicit
-        clPlayers          *ptrPrevPlayer;
+        clRPGPlayers       *ptrPrevPlayer;
         unsigned long int   ulPlayerID;
 //      unsigned char       strUUID[SIZE_OF_UUID];
         unsigned int        uLevel;
-        unsigned long int   uScore;
+        unsigned long int   ulScore;
         unsigned int        uCurrentGameID;
         unsigned int        uInventoryItemCount;
         bool                isFraudulentPlayer;
-        clPlayers          *ptrNextPlayer;
+        clRPGPlayers       *ptrNextPlayer;
 
     public:
-        clPlayers(void)
+        clRPGPlayers(void)
         {
             ptrPrevPlayer = ptrLastPlayer;              // Will be NULL for the first player
-            ulPlayerID = 10000UL + clPlayers::ulPlayerCount++;
+            ulPlayerID = 10000UL + clRPGPlayers::ulRPGPlayerCount++;
 //          memset(strUUID, 0, SIZE_OF_UUID);
 //          ::genUUID(strUUID, SIZE_OF_UUID);
             uLevel = 1;
-            uScore = 0UL;
+            ulScore = 0UL;
             uCurrentGameID = 0;
             uInventoryItemCount = 0;
-            isFraudulentPlayer = (::isFibonacciSeriesNumber(ulPlayerCount - 1) || ::isPrime(ulPlayerCount - 1));
+            isFraudulentPlayer = (::isFibonacciSeriesNumber(ulRPGPlayerCount - 1) || ::isPrime(ulRPGPlayerCount - 1));
             if(ptrLastPlayer != NULL)
             {
                 ptrLastPlayer->ptrNextPlayer = this;
@@ -113,9 +113,27 @@ class clPlayers
             ptrNextPlayer = NULL;
         }
 
+        void updatePlayerData(unsigned int uNewLevel, unsigned long int ulNewScore, unsigned int uNewCurrentGameID, unsigned int uNewInventoryItemCount)
+        {
+            uLevel = uNewLevel;
+            ulScore = ulNewScore;
+            uCurrentGameID = uNewCurrentGameID;
+            uInventoryItemCount = uNewInventoryItemCount;
+        }
+
+        unsigned int getPlayerLevel(void)                               { return uLevel; }
+        unsigned long int getPlayerScore(void)                          { return ulScore; }
+        unsigned int getCurrentGameID(void)                             { return uCurrentGameID; }
+        unsigned int getInventoryItemCount(void)                        { return uInventoryItemCount; }
+
+        void setPlayerLevel(unsigned int uNewLevel)                     { uLevel = uNewLevel; }
+        void setPlayerScore(unsigned long int ulNewScore)               { ulScore = ulNewScore; }
+        void setCurrentGameID(unsigned int uNewCurrentGameID)           { uCurrentGameID = uNewCurrentGameID; }
+        void setInventoryItemCount(unsigned int uNewInventoryItemCount) { uInventoryItemCount = uNewInventoryItemCount; }
+
         static void generateOnePlayer(void)
         {
-            ptrNewPlayer = new clPlayers;
+            ptrNewPlayer = new clRPGPlayers;
             if(ptrNewPlayer == NULL)
             {
                 cout << "ERROR: OOM or another exception. Aborting...";
@@ -131,7 +149,7 @@ class clPlayers
 
         static void dumpPlayersList(void)
         {
-            clPlayers      *ptrTempPlayer = ptrRootPlayer;
+            clRPGPlayers      *ptrTempPlayer = ptrRootPlayer;
 
 #ifdef  _DEBUG_
             cout << "[CurrentLocation]: [ptrPrevPlayer], ";
@@ -146,7 +164,7 @@ class clPlayers
 #ifdef  _DEBUG_
                 cout << "[" << hex << setfill('0') << setw(0x10) << ptrTempPlayer << "]: [" << setw(0x10) << ptrTempPlayer->ptrPrevPlayer << dec << "], ";  // Debug data
 #endif
-                cout << ptrTempPlayer->ulPlayerID << ", " << ptrTempPlayer->uLevel << ", " << ptrTempPlayer->uScore << ", " << ptrTempPlayer->uCurrentGameID << ", " \
+                cout << ptrTempPlayer->ulPlayerID << ", " << ptrTempPlayer->uLevel << ", " << ptrTempPlayer->ulScore << ", " << ptrTempPlayer->uCurrentGameID << ", " \
                      << ptrTempPlayer->uInventoryItemCount << ", " << ptrTempPlayer->isFraudulentPlayer;
 #ifdef  _DEBUG_
                 cout << ", [" << hex << setfill('0') << setw(0x10) << ptrTempPlayer->ptrNextPlayer << "]";                                                  // Debug data
@@ -168,11 +186,42 @@ class clPlayers
             }
         }
 
-        ~clPlayers()
+        ~clRPGPlayers()
         {
-            // Nothing to do at the moment
+            // Nothing to do, yet
         }
 
-        static unsigned long int ulPlayerCount;
+        static unsigned long int ulRPGPlayerCount;
+};
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+class clPlayerRPGameData
+{
+    private:                                            // Intentionally explicit
+        unsigned long int       ulRPGPlayerDataRecordCount;
+        unsigned int            uLevels[80][4][3];      // { [Level] => [Score], [GameID], [ItemCount] => [Min], [Max], [BurstMax] }
+
+    public:
+        clPlayerRPGameData(unsigned long int ulRecordCount) : ulRPGPlayerDataRecordCount(ulRecordCount)
+        {
+        }
+
+        void setRPGPlayerDataRecordCount(unsigned long int ulRecordCount) { ulRPGPlayerDataRecordCount = ulRecordCount; }
+
+        void generatePlayerGamePlayData(void)
+        {
+            while(ulRPGPlayerDataRecordCount-- > 0)
+            {
+                // ToDo
+            }
+        }
+};
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+class clPlayerFPSGameData
+{
+    private:                                            // Intentionally explicit
 };
 //------------------------------------------------------------------------------
