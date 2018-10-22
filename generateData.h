@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <cstring>
 #include <stdlib.h>
 #include <time.h>
@@ -7,6 +8,7 @@ using namespace std;
 
 //------------
 #define SIZE_OF_UUID    0x41
+#define _DEBUG_
 
 //------------ Not used yet, may not be used
 unsigned char* genUUID(unsigned char* strUUID, unsigned int uSize)
@@ -27,25 +29,33 @@ unsigned char* genUUID(unsigned char* strUUID, unsigned int uSize)
 //------------
 bool isPrime(unsigned long int ulNumber)
 {
-//  cout << "P check: " << ulNumber;
+#ifdef  _DEBUG_DEEP_
+    cout << "--- P check: " << ulNumber;
+#endif
     if(ulNumber != 2UL)
     {
         if(ulNumber < 2UL || (ulNumber % 2UL) == 0)
         {
-//          cout << "false" << endl;
+#ifdef  _DEBUG_DEEP_
+            cout << "false" << endl;
+#endif
             return false;
         }
         for(unsigned long int ulItr = 3UL; (ulItr * ulItr) <= ulNumber; ulItr += 2UL)
         {
             if((ulNumber % ulItr) == 0)
             {
-//              cout << "false" << endl;
+#ifdef  _DEBUG_DEEP_
+                cout << "false" << endl;
+#endif
                 return false;
             }
         }
     }
 
-//  cout << "true" << endl;
+#ifdef  _DEBUG_DEEP_
+    cout << "true" << endl;
+#endif
     return true;
 }
 
@@ -60,7 +70,9 @@ bool isPerfectSquare(unsigned long int ulNumber)
 //------------
 bool isFibonacciSeriesNumber(unsigned long int ulNumber)
 {
-//  cout << "F Check: " << ulNumber << ", " << (isPerfectSquare(5UL * ulNumber * ulNumber + 4UL) || isPerfectSquare(5UL * ulNumber * ulNumber - 4UL)) << endl;
+#ifdef  _DEBUG_DEEP_
+    cout << "--- F Check: " << ulNumber << ", " << (isPerfectSquare(5UL * ulNumber * ulNumber + 4UL) || isPerfectSquare(5UL * ulNumber * ulNumber - 4UL)) << endl;
+#endif
 
     return (isPerfectSquare(5UL * ulNumber * ulNumber + 4UL) || isPerfectSquare(5UL * ulNumber * ulNumber - 4UL));
 }
@@ -121,12 +133,25 @@ class clPlayers
         {
             clPlayers      *ptrTempPlayer = ptrRootPlayer;
 
-            cout << "ptrPrevPlayer, PlayerID, Level, Score, CurrentGameID, InventoryItemCount, isFraudulentPlayer, ptrNextPlayer" << endl;
+#ifdef  _DEBUG_
+            cout << "[CurrentLocation]: [ptrPrevPlayer], ";
+#endif
+            cout << "PlayerID, Level, Score, CurrentGameID, InventoryItemCount, isFraudulentPlayer";
+#ifdef  _DEBUG_
+            cout << ", [ptrNextPlayer]";
+#endif
+            cout << endl;
             while(ptrTempPlayer != NULL)
             {
-                cout << ptrTempPlayer->ptrPrevPlayer << ", " << ptrTempPlayer->ulPlayerID << ", " << ptrTempPlayer->uLevel << ", " \
-                     << ptrTempPlayer->uScore << ", " << ptrTempPlayer->uCurrentGameID << ", " << ptrTempPlayer->uInventoryItemCount << ", " \
-                     << ptrTempPlayer->isFraudulentPlayer << ", " << ptrTempPlayer->ptrNextPlayer << endl;
+#ifdef  _DEBUG_
+                cout << "[" << hex << setfill('0') << setw(0x10) << ptrTempPlayer << "]: [" << setw(0x10) << ptrTempPlayer->ptrPrevPlayer << dec << "], ";  // Debug data
+#endif
+                cout << ptrTempPlayer->ulPlayerID << ", " << ptrTempPlayer->uLevel << ", " << ptrTempPlayer->uScore << ", " << ptrTempPlayer->uCurrentGameID << ", " \
+                     << ptrTempPlayer->uInventoryItemCount << ", " << ptrTempPlayer->isFraudulentPlayer;
+#ifdef  _DEBUG_
+                cout << ", [" << hex << setfill('0') << setw(0x10) << ptrTempPlayer->ptrNextPlayer << "]";                                                  // Debug data
+#endif
+                cout << endl;
 
                 ptrTempPlayer = ptrTempPlayer->ptrNextPlayer;
             }
