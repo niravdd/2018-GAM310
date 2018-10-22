@@ -22,7 +22,8 @@ int main(void)
 
     cout << endl << "--- Cleaning up player's list" << endl;
     clPlayers::dropPlayersList();
-    cout << endl << "--- Done. Bye."
+
+    cout << endl << "--- Done. Bye.";
 
     return 0;
 }
