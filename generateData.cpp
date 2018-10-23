@@ -1,6 +1,7 @@
 #include "generateData.h"
 
-unsigned long int    clRPGPlayers::ulRPGPlayerCount = 0UL;
+unsigned long int   clRPGPlayers::ulRPGPlayerCount = 0UL;
+unsigned long int   clRPGPlayers::ulRPGFraudPlayerCount = 0UL;
 
 //------------------------------------------------------------------------------
 int main(void)
@@ -15,7 +16,8 @@ int main(void)
     	clRPGPlayers::generateOnePlayer();
     }
 
-    cout << endl << "--- Generated " << clRPGPlayers::ulRPGPlayerCount << " RPG players..." << endl << endl;
+    cout << endl << "--- Generated " << clRPGPlayers::ulRPGPlayerCount << " RPG players..." << endl;
+    cout << "--- Fraud Player Count: " << clRPGPlayers::ulRPGFraudPlayerCount << "..." << endl;
 
     cout << endl << "--- Dumping players list..." << endl;
     clRPGPlayers::dumpPlayersList();

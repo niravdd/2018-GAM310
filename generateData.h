@@ -106,6 +106,10 @@ class clRPGPlayers
             uCurrentGameID = 0;
             uInventoryItemCount = 0;
             isFraudulentPlayer = (::isFibonacciSeriesNumber(ulRPGPlayerCount - 1) || ::isPrime(ulRPGPlayerCount - 1));
+            if(isFraudulentPlayer == true)
+            {
+                clRPGPlayers::ulRPGFraudPlayerCount++;
+            }
             if(ptrLastPlayer != NULL)
             {
                 ptrLastPlayer->ptrNextPlayer = this;
@@ -192,6 +196,7 @@ class clRPGPlayers
         }
 
         static unsigned long int ulRPGPlayerCount;
+        static unsigned long int ulRPGFraudPlayerCount;
 };
 //------------------------------------------------------------------------------
 
