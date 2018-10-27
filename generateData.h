@@ -1,14 +1,23 @@
+/* (c) Copyright 2018, Nirav Doshi */
+/* This code is licensed under MIT license. */
+
 #include <iostream>
 #include <iomanip>
 #include <cstring>
-#include <stdlib.h>
-#include <time.h>
+#include <cstdlib>
+#include <cstddef>
+#include <vector>
+#include <algorithm>
+#include <random>
+// #include "random.h"          // Uncomment, if you want to use the pcg in the markFraudPlayers()
+#include <ctime>
 #include <math.h>
 using namespace std;
 
 //------------
 #define SIZE_OF_UUID    0x41
 #define _DEBUG_
+// #define _DEBUG_DEEP_
 
 //------------ Not used yet, may not be used
 unsigned char* genUUID(unsigned char* strUUID, unsigned int uSize)
@@ -105,11 +114,14 @@ class clRPGPlayers
             ulScore = 0UL;
             uCurrentGameID = 0;
             uInventoryItemCount = 0;
+            isFraudulentPlayer = false;
+/*
             isFraudulentPlayer = (::isFibonacciSeriesNumber(ulRPGPlayerCount - 1) || ::isPrime(ulRPGPlayerCount - 1));
             if(isFraudulentPlayer == true)
             {
                 clRPGPlayers::ulRPGFraudPlayerCount++;
             }
+*/
             if(ptrLastPlayer != NULL)
             {
                 ptrLastPlayer->ptrNextPlayer = this;
@@ -151,6 +163,65 @@ class clRPGPlayers
             ptrLastPlayer = ptrNewPlayer;
         }
 
+        static void markFraudPlayers(unsigned int nPercentage)
+        {
+            clRPGPlayers               *ptrTempPlayer = ptrRootPlayer;
+            vector<unsigned long int>   vecFraudPlayers;
+            random_device               rd;
+            mt19937                     random(rd());
+        //  pcg random(rd);                                     // Needs the random.h, uncomment it if this is used
+            uniform_int_distribution<unsigned long int> ulDistro(1, clRPGPlayers::ulRPGPlayerCount);
+
+            for(unsigned long int ulItr = 0; ulItr < static_cast<unsigned long int>((clRPGPlayers::ulRPGPlayerCount * nPercentage)/100); ulItr++)
+            {
+                vecFraudPlayers.push_back(ulDistro(random));
+            }
+
+#ifdef  _DEBUG_DEEP_
+            for(vector<unsigned long int>::iterator vItr = vecFraudPlayers.begin(); vItr != vecFraudPlayers.end(); ++vItr)
+            {
+                cout << *vItr << " .. ";
+            }
+            cout << endl;
+#endif
+
+            sort(vecFraudPlayers.begin(), vecFraudPlayers.end());
+
+#ifdef  _DEBUG_DEEP_
+            for(vector<unsigned long int>::iterator vItr = vecFraudPlayers.begin(); vItr != vecFraudPlayers.end(); ++vItr)
+            {
+                cout << *vItr << " .. ";
+            }
+            cout << endl;
+#endif
+
+            for(vector<unsigned long int>::iterator vItr = vecFraudPlayers.begin(); vItr != vecFraudPlayers.end(); ++vItr)
+            {
+                while(ptrTempPlayer != NULL)
+                {
+                    if((ptrTempPlayer->ulPlayerID - 10000UL) == *vItr)
+                    {
+                        ptrTempPlayer->isFraudulentPlayer = true;
+                        clRPGPlayers::ulRPGFraudPlayerCount++;
+
+                        ++vItr;                                                 // Checking the next number in the vector
+                        while(*vItr == (ptrTempPlayer->ulPlayerID - 10000UL))   // Skip duplicate PlayerIDs in the vector
+                        {
+                            ++vItr;
+                        }
+                        --vItr;                                             // Check done. Step back, allow the for() to increment
+                        ptrTempPlayer = ptrTempPlayer->ptrNextPlayer;       // Next player
+
+                        break;
+                    }
+                    else
+                    {
+                        ptrTempPlayer = ptrTempPlayer->ptrNextPlayer;       // Find the next player
+                    }
+                }
+            }
+        }
+
         static void dumpPlayersList(void)
         {
             clRPGPlayers      *ptrTempPlayer = ptrRootPlayer;
@@ -173,7 +244,7 @@ class clRPGPlayers
 #ifdef  _DEBUG_
                 cout << ", [" << hex << setfill('0') << setw(0x10) << ptrTempPlayer->ptrNextPlayer << "]";                                                  // Debug data
 #endif
-                cout << endl;
+                cout << dec << endl;
 
                 ptrTempPlayer = ptrTempPlayer->ptrNextPlayer;
             }
