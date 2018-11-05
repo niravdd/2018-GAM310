@@ -33,6 +33,8 @@ int main(void)
     cout << endl << "--- Generated " << clRPGPlayers::ulRPGPlayerCount << " RPG players..." << endl;
     cout << "--- Fraud Player Count: " << clRPGPlayers::ulRPGFraudPlayerCount << "(" << fixed << setprecision(2) << static_cast<float>((clRPGPlayers::ulRPGFraudPlayerCount * 100.00f)/clRPGPlayers::ulRPGPlayerCount) << "%)..." << dec << endl;
 
+    clPlayerRPGameData objGameData;
+
     cout << endl << "--- Cleaning up players list..." << endl;
     clRPGPlayers::dropPlayersList();
 

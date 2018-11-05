@@ -11,13 +11,24 @@
 #include <random>
 // #include "random.h"          // Uncomment, if you want to use the pcg in the markFraudPlayers()
 #include <ctime>
+#include <chrono>
 #include <math.h>
 using namespace std;
 
 //------------
 #define SIZE_OF_UUID    0x41
+
+//---
 #define _DEBUG_
 // #define _DEBUG_DEEP_
+
+#define LEVELS      0x80
+#define MINMAXBURST 0x03
+
+#define MIN         0x00
+#define MAX         0x01
+#define MAXBURST    0x02
+//---
 
 //------------ Not used yet, may not be used
 unsigned char* genUUID(unsigned char* strUUID, unsigned int uSize)
@@ -25,7 +36,7 @@ unsigned char* genUUID(unsigned char* strUUID, unsigned int uSize)
     srand(time(NULL));
     memset(strUUID, 0, uSize);
 
-    sprintf((char*) strUUID, "%x%x-%x-%x-%x-%x%x%x", 
+    sprintf((char*) strUUID, "%x%x-%x-%x-%x-%x%x%x",
             rand(), rand(),                 // Generates a 64-bit Hex number
             rand(),                         // Generates a 32-bit Hex number
             ((rand() & 0x0fff) | 0x4000),   // Generates a 32-bit Hex number of the form 4xxx (4 indicates the UUID version)
@@ -98,7 +109,10 @@ class clRPGPlayers
 //      unsigned char       strUUID[SIZE_OF_UUID];
         unsigned int        uLevel;
         unsigned long int   ulScore;
-        unsigned int        uCurrentGameID;
+        unsigned int        uUnitsCount;
+        unsigned int        uGoldCount;
+        unsigned int        uPotionCount;
+        unsigned int        uFriendCount;
         unsigned int        uInventoryItemCount;
         bool                isFraudulentPlayer;
         clRPGPlayers       *ptrNextPlayer;
@@ -112,7 +126,10 @@ class clRPGPlayers
 //          ::genUUID(strUUID, SIZE_OF_UUID);
             uLevel = 1;
             ulScore = 0UL;
-            uCurrentGameID = 0;
+            uUnitsCount = 5;
+            uGoldCount = 3;
+            uPotionCount = 0;
+            uFriendCount = 0;
             uInventoryItemCount = 0;
             isFraudulentPlayer = false;
 /*
@@ -129,22 +146,31 @@ class clRPGPlayers
             ptrNextPlayer = NULL;
         }
 
-        void updatePlayerData(unsigned int uNewLevel, unsigned long int ulNewScore, unsigned int uNewCurrentGameID, unsigned int uNewInventoryItemCount)
+        void updatePlayerData(unsigned int uNewLevel, unsigned long int ulNewScore, unsigned int uNewUnitsCount, unsigned int uNewGoldCount, unsigned int uNewPotionCount, unsigned int uNewFriendCount, unsigned int uNewInventoryItemCount)
         {
             uLevel = uNewLevel;
             ulScore = ulNewScore;
-            uCurrentGameID = uNewCurrentGameID;
+            uUnitsCount = uNewUnitsCount;
+            uGoldCount = uNewGoldCount;
+            uPotionCount = uNewPotionCount;
+            uFriendCount = uNewFriendCount;
             uInventoryItemCount = uNewInventoryItemCount;
         }
 
         unsigned int getPlayerLevel(void)                               { return uLevel; }
         unsigned long int getPlayerScore(void)                          { return ulScore; }
-        unsigned int getCurrentGameID(void)                             { return uCurrentGameID; }
+        unsigned int getUnitsCount(void)                                { return uUnitsCount; }
+        unsigned int getGoldCount(void)                                 { return uGoldCount; }
+        unsigned int getPotionCount(void)                               { return uPotionCount; }
+        unsigned int getFriendcount(void)                               { return uFriendCount; }
         unsigned int getInventoryItemCount(void)                        { return uInventoryItemCount; }
 
         void setPlayerLevel(unsigned int uNewLevel)                     { uLevel = uNewLevel; }
         void setPlayerScore(unsigned long int ulNewScore)               { ulScore = ulNewScore; }
-        void setCurrentGameID(unsigned int uNewCurrentGameID)           { uCurrentGameID = uNewCurrentGameID; }
+        void setUnitsCount(unsigned int uNewUnitsCount)                 { uUnitsCount = uNewUnitsCount; }
+        void setGoldCount(unsigned int uNewGoldCount)                   { uGoldCount = uNewGoldCount; }
+        void setPotionCount(unsigned int uNewPotionCount)               { uPotionCount = uNewPotionCount; }
+        void setFriendCount(unsigned int uNewFriendCount)               { uFriendCount = uNewFriendCount; }
         void setInventoryItemCount(unsigned int uNewInventoryItemCount) { uInventoryItemCount = uNewInventoryItemCount; }
 
         static void generateOnePlayer(void)
@@ -229,7 +255,7 @@ class clRPGPlayers
 #ifdef  _DEBUG_
             cout << "[CurrentLocation]: [ptrPrevPlayer], ";
 #endif
-            cout << "PlayerID, Level, Score, CurrentGameID, InventoryItemCount, isFraudulentPlayer";
+            cout << "PlayerID, Level, Score, Units, Gold, Potions, Friends, InventoryItems, isFraudulentPlayer";
 #ifdef  _DEBUG_
             cout << ", [ptrNextPlayer]";
 #endif
@@ -239,7 +265,8 @@ class clRPGPlayers
 #ifdef  _DEBUG_
                 cout << "[" << hex << setfill('0') << setw(0x10) << ptrTempPlayer << "]: [" << setw(0x10) << ptrTempPlayer->ptrPrevPlayer << dec << "], ";  // Debug data
 #endif
-                cout << ptrTempPlayer->ulPlayerID << ", " << ptrTempPlayer->uLevel << ", " << ptrTempPlayer->ulScore << ", " << ptrTempPlayer->uCurrentGameID << ", " \
+                cout << ptrTempPlayer->ulPlayerID << ", " << ptrTempPlayer->uLevel << ", " << ptrTempPlayer->ulScore << ", " << ptrTempPlayer->uUnitsCount << ", " \
+                     << ptrTempPlayer->uGoldCount << ", " << ptrTempPlayer->uPotionCount << ", " << ptrTempPlayer->uFriendCount << ", " \
                      << ptrTempPlayer->uInventoryItemCount << ", " << ptrTempPlayer->isFraudulentPlayer;
 #ifdef  _DEBUG_
                 cout << ", [" << hex << setfill('0') << setw(0x10) << ptrTempPlayer->ptrNextPlayer << "]";                                                  // Debug data
@@ -276,17 +303,60 @@ class clPlayerRPGameData
 {
     private:                                            // Intentionally explicit
         unsigned long int       ulRPGPlayerDataRecordCount;
-        unsigned int            uLevels[80][4][3];      // { [Level] => [Score], [GameID], [ItemCount] => [Min], [Max], [BurstMax] }
+
+        unsigned long int       ulScores[LEVELS][MINMAXBURST];
 
     public:
-        clPlayerRPGameData(unsigned long int ulRecordCount) : ulRPGPlayerDataRecordCount(ulRecordCount)
+        clPlayerRPGameData(unsigned long int ulRecordCount = 0UL) : ulRPGPlayerDataRecordCount(ulRecordCount)
         {
+            ulRPGPlayerDataRecordCount = ulRecordCount;
+            generateGameData();
         }
 
         void setRPGPlayerDataRecordCount(unsigned long int ulRecordCount) { ulRPGPlayerDataRecordCount = ulRecordCount; }
 
+        void generateGameData(void)
+        {
+            mt19937         randomSeed0(chrono::high_resolution_clock::now().time_since_epoch().count());
+            mt19937         randomSeed1(chrono::high_resolution_clock::now().time_since_epoch().count());
+            mt19937         randomSeed2(chrono::high_resolution_clock::now().time_since_epoch().count());
+
+#ifdef _DEBUG_DEEP_
+            cout << endl << endl;
+#endif
+            for(int nItr = 1; nItr <= LEVELS; nItr++)
+            {
+                {
+                    uniform_int_distribution<unsigned long int> ulMinScores(0, (nItr * 10));
+                    uniform_int_distribution<unsigned long int> ulMaxScores((nItr * 100), (nItr * 200));
+                    uniform_int_distribution<unsigned long int> ulBurstScores((nItr * 201), (nItr * 800));
+
+                    ulScores[nItr][MIN] = ulMinScores(randomSeed0);
+                    ulScores[nItr][MAX] = ulMaxScores(randomSeed1);
+                    ulScores[nItr][MAXBURST] = ulBurstScores(randomSeed2);
+                }
+#ifdef _DEBUG_DEEP_
+                cout << nItr << ". => " << ulScores[nItr][MIN] << " .. " << ulScores[nItr][MAX] << " .. " << ulScores[nItr][MAXBURST] << endl;
+#endif
+            }
+        }
+
         void generatePlayerGamePlayData(void)
         {
+            mt19937         randomSeed0(chrono::high_resolution_clock::now().time_since_epoch().count());
+            mt19937         randomSeed1(chrono::high_resolution_clock::now().time_since_epoch().count());
+            mt19937         randomSeed2(chrono::high_resolution_clock::now().time_since_epoch().count());
+            mt19937         randomSeed3(chrono::high_resolution_clock::now().time_since_epoch().count());
+            uniform_int_distribution<unsigned long int> ulPlayer(1, clRPGPlayers::ulRPGPlayerCount);
+
+            discrete_distribution<unsigned int> uUnits(40, 25, 15, 10, 5, 5);
+            uniform_int_distribution<unsigned int> uBurstUnits(7, 20);
+            discrete_distribution<unsigned int> uGold(35, 25, 20, 15, 5);
+            uniform_int_distribution<unsigned int> uBurstGold(6, 400);
+            discrete_distribution<unsigned int> uPotions(15, 35, 25, 15, 10);
+            uniform_int_distribution<unsigned int> uBurstPotions(6, 50);
+            uniform_int_distribution<unsigned int> uFriends(0, 25);
+
             while(ulRPGPlayerDataRecordCount-- > 0)
             {
                 // ToDo
