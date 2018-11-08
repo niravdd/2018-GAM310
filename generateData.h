@@ -17,7 +17,7 @@ using namespace std;
 
 //------------
 #define SIZE_OF_UUID    0x41
-#define OFFSET          0x01
+#define OFFSET         -0x02
 
 //---
 #define _DEBUG_
@@ -147,9 +147,9 @@ class clRPGPlayers
             ptrNextPlayer = NULL;
         }
 
-        clRPGPlayers(unsigned long int ulTempPlayerID)
+        clRPGPlayers(unsigned long int ulTempPlayerID):ulPlayerID(ulTempPlayerID)
         {
-            ulPlayerID = ulTempPlayerID;
+            ptrPrevPlayer = ptrNextPlayer = NULL;               // This constructor is only for an object, not part of our main Dynamic Linked List (DLL)
         }
 
         void operator +=(clRPGPlayers objRightPlayer)
@@ -161,6 +161,41 @@ class clRPGPlayers
             this->uPotionCount += objRightPlayer.uPotionCount;
             this->uFriendCount += objRightPlayer.uFriendCount;
             this->uInventoryItemCount += objRightPlayer.uInventoryItemCount;
+        }
+
+        void operator =(clRPGPlayers *ptrRightPlayer)
+        {
+            this->ulPlayerID = ptrRightPlayer->ulPlayerID;
+            this->uLevel = ptrRightPlayer->ulLevel;
+            this->ulScore = ptrRightPlayer->ulScore;
+            this->uUnitsCount = ptrRightPlayer->uUnitsCount;
+            this->uGoldCount = ptrRightPlayer->uGoldCount;
+            this->uPotionCount = ptrRightPlayer->uPotionCount;
+            this->uFriendCount = ptrRightPlayer->uFriendCount;
+            this->uInventoryItemCount = ptrRightPlayer->uInventoryItemCount;
+        }
+
+        void dumpPlayerData(void)
+        {
+#ifdef  _DEBUG_
+            cout << "[CurrentLocation]: [ptrPrevPlayer], ";
+#endif
+            cout << "PlayerID, Level, Score, Units, Gold, Potions, Friends, InventoryItems, isFraudulentPlayer";
+#ifdef  _DEBUG_
+            cout << ", [ptrNextPlayer]";
+#endif
+            cout << endl;
+
+#ifdef  _DEBUG_
+            cout << "[" << hex << setfill('0') << setw(0x10) << this << "]: [" << setw(0x10) << ptrPrevPlayer << dec << "], ";  // Debug data
+#endif
+            cout << ulPlayerID << ", " << uLevel << ", " << ulScore << ", " << uUnitsCount << ", " \
+                 << uGoldCount << ", " << uPotionCount << ", " << uFriendCount << ", " \
+                 << uInventoryItemCount << ", " << isFraudulentPlayer;
+#ifdef  _DEBUG_
+            cout << ", [" << hex << setfill('0') << setw(0x10) << ptrNextPlayer << "]";                                                  // Debug data
+#endif
+            cout << dec << endl;
         }
 
         void updatePlayerData(unsigned int uNewLevel, unsigned long int ulNewScore, unsigned int uNewUnitsCount, unsigned int uNewGoldCount, unsigned int uNewPotionCount, unsigned int uNewFriendCount, unsigned int uNewInventoryItemCount)
@@ -340,7 +375,6 @@ class clPlayerRPGameData
 {
     private:                                            // Intentionally explicit
         unsigned long int       ulRPGPlayerDataRecordCount;
-
         unsigned long int       ulScores[LEVELS][MINMAXBURST];
 
     public:
@@ -391,11 +425,11 @@ class clPlayerRPGameData
 
             uniform_int_distribution<unsigned long int> ulRandomPlayer(1, clRPGPlayers::ulRPGPlayerCount);
 
-            discrete_distribution<unsigned int> uUnits({30, 20, 17, 12, 10, 8, 3});     // Weights for: {-1, 0, 1, 2, 3, 4, 5}
+            discrete_distribution<unsigned int> uUnits({10, 12, 21, 18, 15, 12, 9, 3}); // Weights for: {-2, -1, 0, 1, 2, 3, 4, 5}
             uniform_int_distribution<unsigned int> uBurstUnits(7, 20);
-            discrete_distribution<unsigned int> uGold({25, 23, 20, 18, 11, 3});         // Weights for {-1, 0, 1, 2, 3, 4}
+            discrete_distribution<unsigned int> uGold({13, 17, 21, 20, 17, 9, 3});      // Weights for {-2, -1, 0, 1, 2, 3, 4}
             uniform_int_distribution<unsigned int> uBurstGold(6, 400);
-            discrete_distribution<unsigned int> uPotions({15, 30, 20, 15, 10, 10});     // Weights for {-1, 0, 1, 2, 3, 4}
+            discrete_distribution<unsigned int> uPotions({15, 17, 25, 18, 12, 10, 3});     // Weights for {-2, -1, 0, 1, 2, 3, 4}
             uniform_int_distribution<unsigned int> uBurstPotions(6, 50);
             uniform_int_distribution<unsigned int> uFriends(0, 25);
 
