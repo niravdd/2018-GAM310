@@ -3,8 +3,10 @@
 
 #include "generateData.h"
 
-unsigned long int   clRPGPlayers::ulRPGPlayerCount = 0UL;
-unsigned long int   clRPGPlayers::ulRPGFraudPlayerCount = 0UL;
+
+clPlayerRPGameData  *clPlayerRPGameData::ptrSingleInstance = NULL;
+unsigned long int    clRPGPlayers::ulRPGPlayerCount = 0UL;
+unsigned long int    clRPGPlayers::ulRPGFraudPlayerCount = 0UL;
 
 //------------------------------------------------------------------------------
 int main(void)
@@ -33,8 +35,8 @@ int main(void)
     cout << endl << "--- Generated " << clRPGPlayers::ulRPGPlayerCount << " RPG players..." << endl;
     cout << "--- Fraud Player Count: " << clRPGPlayers::ulRPGFraudPlayerCount << "(" << fixed << setprecision(2) << static_cast<float>((clRPGPlayers::ulRPGFraudPlayerCount * 100.00f)/clRPGPlayers::ulRPGPlayerCount) << "%)..." << dec << endl;
 
-    clPlayerRPGameData objGameData;
-    objGameData.generatePlayerGamePlayData();
+    clPlayerRPGameData *ptrPlayerRPGameData = clPlayerRPGameData::getInstance(10UL);
+    ptrPlayerRPGameData->generatePlayerGamePlayData();
 
     cout << endl << "--- Cleaning up players list..." << endl;
     clRPGPlayers::dropPlayersList();

@@ -101,6 +101,7 @@ bool isFibonacciSeriesNumber(unsigned long int ulNumber)
 //------------------------------------------------------------------------------
 class clRPGPlayers;
 clRPGPlayers   *ptrRootPlayer, *ptrNewPlayer, *ptrLastPlayer;            // root not required for a DLL, using it to save traversing from top to the bottom
+class clPlayerRPGameData;
 
 class clRPGPlayers
 {
@@ -154,8 +155,12 @@ class clRPGPlayers
 
         void operator +=(clRPGPlayers objRightPlayer)
         {
-            this->uLevel = objRightPlayer.ulLevel;
+            this->uLevel = objRightPlayer.uLevel;
             this->ulScore += objRightPlayer.ulScore;
+            if(checkLevelUp() == true)
+            {
+                this->uLevel++;
+            }
             this->uUnitsCount += objRightPlayer.uUnitsCount;
             this->uGoldCount += objRightPlayer.uGoldCount;
             this->uPotionCount += objRightPlayer.uPotionCount;
@@ -163,16 +168,40 @@ class clRPGPlayers
             this->uInventoryItemCount += objRightPlayer.uInventoryItemCount;
         }
 
-        void operator =(clRPGPlayers *ptrRightPlayer)
+        void operator =(clRPGPlayers objRightPlayer)
         {
-            this->ulPlayerID = ptrRightPlayer->ulPlayerID;
-            this->uLevel = ptrRightPlayer->ulLevel;
-            this->ulScore = ptrRightPlayer->ulScore;
-            this->uUnitsCount = ptrRightPlayer->uUnitsCount;
-            this->uGoldCount = ptrRightPlayer->uGoldCount;
-            this->uPotionCount = ptrRightPlayer->uPotionCount;
-            this->uFriendCount = ptrRightPlayer->uFriendCount;
-            this->uInventoryItemCount = ptrRightPlayer->uInventoryItemCount;
+            this->ulPlayerID = objRightPlayer.ulPlayerID;
+            this->uLevel = objRightPlayer.uLevel;
+            this->ulScore = objRightPlayer.ulScore;
+            if(checkLevelUp() == true)
+            {
+                this->uLevel++;
+            }
+            this->uUnitsCount = objRightPlayer.uUnitsCount;
+            this->uGoldCount = objRightPlayer.uGoldCount;
+            this->uPotionCount = objRightPlayer.uPotionCount;
+            this->uFriendCount = objRightPlayer.uFriendCount;
+            this->uInventoryItemCount = objRightPlayer.uInventoryItemCount;
+        }
+
+        bool checkLevelUp(void)
+        {
+            clPlayerRPGameData *ptrTempRecord = clPlayerRPGameData::getInstance();
+            bool    checkResult = false;
+            if(this->isFraudulentPlayer == false)
+            {
+                if(this->ulScore > ptrTempPlayer->getMaxScore(this->uLevel))
+                {
+                    checkResult = true;
+                }
+                else
+                {
+                    if(this->ulScore > ptrTempPlayer->getBurstMaxScore(this->uLevel))
+                    {
+                        checkResult = true;
+                    }
+                }
+            return checkResult;
         }
 
         void dumpPlayerData(void)
@@ -201,7 +230,7 @@ class clRPGPlayers
         void updatePlayerData(unsigned int uNewLevel, unsigned long int ulNewScore, unsigned int uNewUnitsCount, unsigned int uNewGoldCount, unsigned int uNewPotionCount, unsigned int uNewFriendCount, unsigned int uNewInventoryItemCount)
         {
             uLevel = uNewLevel;
-            ulScore = ulNewScore;
+            ulScore = ulNewScore;                           // TODO: If the score > max. score for level, level-up
             uUnitsCount = uNewUnitsCount;
             uGoldCount = uNewGoldCount;
             uPotionCount = uNewPotionCount;
@@ -210,6 +239,7 @@ class clRPGPlayers
         }
 
         unsigned int getPlayerLevel(void)                               { return uLevel; }
+
         unsigned long int getPlayerScore(void)                          { return ulScore; }
         unsigned int getUnitsCount(void)                                { return uUnitsCount; }
         unsigned int getGoldCount(void)                                 { return uGoldCount; }
@@ -230,7 +260,7 @@ class clRPGPlayers
             ptrNewPlayer = new clRPGPlayers;
             if(ptrNewPlayer == NULL)
             {
-                cout << "ERROR: OOM or some other exception. Aborting...";
+                cout << endl << "ERROR: OOM or some other exception. Aborting... (from clRPGPlayers)" << endl;
                 exit(1);
             }
 
@@ -371,21 +401,45 @@ class clRPGPlayers
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
+// Will be a singleton class
 class clPlayerRPGameData
 {
     private:                                            // Intentionally explicit
-        unsigned long int       ulRPGPlayerDataRecordCount;
-        unsigned long int       ulScores[LEVELS][MINMAXBURST];
+        unsigned long int           ulRPGPlayerDataRecordCount;
+        unsigned long int           ulScores[LEVELS][MINMAXBURST];
+        static clPlayerRPGameData  *ptrSingleInstance;
 
-    public:
         clPlayerRPGameData(unsigned long int ulRecordCount = 1000UL) : ulRPGPlayerDataRecordCount(ulRecordCount)
         {
-            generateGameData();
+            if(ulRecordCount > 0UL)
+            {
+                generateGameDesignData();
+            }
         }
 
-        void setRPGPlayerDataRecordCount(unsigned long int ulRecordCount = 1000UL) { ulRPGPlayerDataRecordCount = ulRecordCount; }
+    public:
+        static clPlayerRPGameData* getInstance(unsigned long int ulRecordCount = 1000UL)
+        {
+            if(ptrSingleInstance == NULL)
+            {
+                ptrSingleInstance = new clPlayerRPGameData(ulRecordCount);
+                if(ptrSingleInstance == NULL)
+                {
+                    cout << endl << "ERROR: OOM or some other exception. Aborting... (from clPlayerRPGameData::getInstance())" << endl;
+                    exit(1);
+                }
+            }
 
-        void generateGameData(void)
+            return ptrSingleInstance;
+        }
+
+//      void setRPGPlayerDataRecordCount(unsigned long int ulRecordCount = 1000UL) { ulRPGPlayerDataRecordCount = ulRecordCount; }
+
+        unsigned long int getMinScore(unsigned int uPlayerLevel)        { return ulScores[uPlayerLevel][MIN]; }
+        unsigned long int getMaxScore(unsigned int uPlayerLevel)        { return ulScores[uPlayerLevel][MAX]; }
+        unsigned long int getBurstMaxScore(unsigned int uPlayerLevel)   { return ulScores[uPlayerLevel][MAXBURST]; }
+
+        void generateGameDesignData(void)
         {
             mt19937         randomSeed0(chrono::high_resolution_clock::now().time_since_epoch().count());
             mt19937         randomSeed1(chrono::high_resolution_clock::now().time_since_epoch().count());
@@ -429,7 +483,7 @@ class clPlayerRPGameData
             uniform_int_distribution<unsigned int> uBurstUnits(7, 20);
             discrete_distribution<unsigned int> uGold({13, 17, 21, 20, 17, 9, 3});      // Weights for {-2, -1, 0, 1, 2, 3, 4}
             uniform_int_distribution<unsigned int> uBurstGold(6, 400);
-            discrete_distribution<unsigned int> uPotions({15, 17, 25, 18, 12, 10, 3});     // Weights for {-2, -1, 0, 1, 2, 3, 4}
+            discrete_distribution<unsigned int> uPotions({15, 17, 25, 18, 12, 10, 3});  // Weights for {-2, -1, 0, 1, 2, 3, 4}
             uniform_int_distribution<unsigned int> uBurstPotions(6, 50);
             uniform_int_distribution<unsigned int> uFriends(0, 25);
 
@@ -450,7 +504,13 @@ class clPlayerRPGameData
                     if(ptrTempPlayer != NULL)
                     {
                         clRPGPlayers objTempPlayer(ptrTempPlayer->ulPlayerID);
-                        cout << endl << ulNextPlayerID << ", " << ", " << ", " << ", ";
+                        cout << endl << "--- Temp";
+                        ptrTempPlayer->dumpPlayerData();
+                        cout << endl << "--- Actual";
+                        objTempPlayer = *ptrTempPlayer;
+                     //
+                        objTempPlayer.dumpPlayerData();
+                        cout << endl << "--- Next";
                     }
                 }
             }
