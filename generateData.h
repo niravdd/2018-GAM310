@@ -1,5 +1,6 @@
 /* (c) Copyright 2018, Nirav Doshi */
 /* This code is licensed under MIT license. */
+/* Compiles on Mac OS X: g++ generateData.cpp -std=c++11 */
 
 #include <iostream>
 #include <iomanip>
@@ -21,7 +22,7 @@ using namespace std;
 
 //---
 #define _DEBUG_
-#define _DEBUG_DEEP_
+// #define _DEBUG_DEEP_
 
 #define LEVELS      0x80
 #define MINMAXBURST 0x03
@@ -153,75 +154,68 @@ class clRPGPlayers
             ptrPrevPlayer = ptrNextPlayer = NULL;               // This constructor is only for an object, not part of our main Dynamic Linked List (DLL)
         }
 
-        void operator +=(clRPGPlayers objRightPlayer)
+        void operator+=(const clRPGPlayers& objRightPlayer)
         {
             this->uLevel = objRightPlayer.uLevel;
             this->ulScore += objRightPlayer.ulScore;
-            if(checkLevelUp() == true)
-            {
-                this->uLevel++;
-            }
             this->uUnitsCount += objRightPlayer.uUnitsCount;
             this->uGoldCount += objRightPlayer.uGoldCount;
             this->uPotionCount += objRightPlayer.uPotionCount;
             this->uFriendCount += objRightPlayer.uFriendCount;
             this->uInventoryItemCount += objRightPlayer.uInventoryItemCount;
+            this->isFraudulentPlayer = objRightPlayer.isFraudulentPlayer;
         }
 
-        void operator =(clRPGPlayers objRightPlayer)
+        clRPGPlayers* operator+(const clRPGPlayers *ptrRightPlayer)
+        {
+            this->uLevel = ptrRightPlayer->uLevel;
+            this->ulScore = this->ulScore + ptrRightPlayer->ulScore;
+            this->uUnitsCount = this->uUnitsCount + ptrRightPlayer->uUnitsCount;
+            this->uGoldCount = this->uGoldCount + ptrRightPlayer->uGoldCount;
+            this->uPotionCount = this->uPotionCount + ptrRightPlayer->uPotionCount;
+            this->uFriendCount = this->uFriendCount + ptrRightPlayer->uFriendCount;
+            this->uInventoryItemCount = this->uInventoryItemCount + ptrRightPlayer->uInventoryItemCount;
+            this->isFraudulentPlayer = ptrRightPlayer->isFraudulentPlayer;
+
+            return this;
+        }
+
+        clRPGPlayers* operator+=(const clRPGPlayers *ptrRightPlayer)
+        {
+            this->uLevel = ptrRightPlayer->uLevel;
+            this->ulScore += ptrRightPlayer->ulScore;
+            this->uUnitsCount += ptrRightPlayer->uUnitsCount;
+            this->uGoldCount += ptrRightPlayer->uGoldCount;
+            this->uPotionCount += ptrRightPlayer->uPotionCount;
+            this->uFriendCount += ptrRightPlayer->uFriendCount;
+            this->uInventoryItemCount += ptrRightPlayer->uInventoryItemCount;
+            this->isFraudulentPlayer = ptrRightPlayer->isFraudulentPlayer;
+
+            return this;
+        }
+
+        void operator =(const clRPGPlayers& objRightPlayer)
         {
             this->ulPlayerID = objRightPlayer.ulPlayerID;
             this->uLevel = objRightPlayer.uLevel;
             this->ulScore = objRightPlayer.ulScore;
-            if(checkLevelUp() == true)
-            {
-                this->uLevel++;
-            }
             this->uUnitsCount = objRightPlayer.uUnitsCount;
             this->uGoldCount = objRightPlayer.uGoldCount;
             this->uPotionCount = objRightPlayer.uPotionCount;
             this->uFriendCount = objRightPlayer.uFriendCount;
             this->uInventoryItemCount = objRightPlayer.uInventoryItemCount;
-        }
-
-        bool checkLevelUp(void)
-        {
-            clPlayerRPGameData *ptrTempRecord = clPlayerRPGameData::getInstance();
-            bool    checkResult = false;
-            if(this->isFraudulentPlayer == false)
-            {
-                if(this->ulScore > ptrTempPlayer->getMaxScore(this->uLevel))
-                {
-                    checkResult = true;
-                }
-                else
-                {
-                    if(this->ulScore > ptrTempPlayer->getBurstMaxScore(this->uLevel))
-                    {
-                        checkResult = true;
-                    }
-                }
-            return checkResult;
+            this->isFraudulentPlayer = objRightPlayer.isFraudulentPlayer;
         }
 
         void dumpPlayerData(void)
         {
-#ifdef  _DEBUG_
-            cout << "[CurrentLocation]: [ptrPrevPlayer], ";
-#endif
-            cout << "PlayerID, Level, Score, Units, Gold, Potions, Friends, InventoryItems, isFraudulentPlayer";
-#ifdef  _DEBUG_
-            cout << ", [ptrNextPlayer]";
-#endif
-            cout << endl;
-
-#ifdef  _DEBUG_
+#ifdef  _DEBUG_DEEP_
             cout << "[" << hex << setfill('0') << setw(0x10) << this << "]: [" << setw(0x10) << ptrPrevPlayer << dec << "], ";  // Debug data
 #endif
             cout << ulPlayerID << ", " << uLevel << ", " << ulScore << ", " << uUnitsCount << ", " \
                  << uGoldCount << ", " << uPotionCount << ", " << uFriendCount << ", " \
                  << uInventoryItemCount << ", " << isFraudulentPlayer;
-#ifdef  _DEBUG_
+#ifdef  _DEBUG_DEEP_
             cout << ", [" << hex << setfill('0') << setw(0x10) << ptrNextPlayer << "]";                                                  // Debug data
 #endif
             cout << dec << endl;
@@ -238,14 +232,36 @@ class clRPGPlayers
             uInventoryItemCount = uNewInventoryItemCount;
         }
 
-        unsigned int getPlayerLevel(void)                               { return uLevel; }
+        clRPGPlayers* findPlayer(unsigned long int tempPlayerID)
+        {
+            clRPGPlayers    *ptrTempPlayer = ptrRootPlayer;
 
+            while(ptrTempPlayer != NULL)
+            {
+                if(ptrTempPlayer->ulPlayerID == tempPlayerID)
+                {
+#ifdef _DEBUG_DEEP_
+                    cout << endl << "Player found: [" << ptrTempPlayer << "]";
+#endif
+                    break;
+                }
+                ptrTempPlayer = ptrTempPlayer->ptrNextPlayer;
+            }
+
+            return ptrTempPlayer;
+        }
+
+        unsigned long int getPlayerID(void)                             { return ulPlayerID; }
+        unsigned int getPlayerLevel(void)                               { return uLevel; }
         unsigned long int getPlayerScore(void)                          { return ulScore; }
         unsigned int getUnitsCount(void)                                { return uUnitsCount; }
         unsigned int getGoldCount(void)                                 { return uGoldCount; }
         unsigned int getPotionCount(void)                               { return uPotionCount; }
         unsigned int getFriendcount(void)                               { return uFriendCount; }
         unsigned int getInventoryItemCount(void)                        { return uInventoryItemCount; }
+        bool isThisAFraudulentPlayer(void)                              { return isFraudulentPlayer; }
+        clRPGPlayers *getPreviousPlayer(void)                           { return ptrPrevPlayer; }
+        clRPGPlayers *getNextPlayer(void)                               { return ptrNextPlayer; }
 
         void setPlayerLevel(unsigned int uNewLevel)                     { uLevel = uNewLevel; }
         void setPlayerScore(unsigned long int ulNewScore)               { ulScore = ulNewScore; }
@@ -271,22 +287,6 @@ class clRPGPlayers
             ptrLastPlayer = ptrNewPlayer;
         }
 
-        static clRPGPlayers* findPlayer(unsigned long int tempPlayerID)
-        {
-            clRPGPlayers    *ptrTempPlayer = ptrRootPlayer;
-
-            while(ptrTempPlayer != NULL)
-            {
-                if(ptrTempPlayer->ulPlayerID == tempPlayerID)
-                {
-                    break;
-                }
-                ptrTempPlayer = ptrTempPlayer->ptrNextPlayer;
-            }
-
-            return ptrTempPlayer;
-        }
-
         static void markFraudPlayers(unsigned int nPercentage)
         {
             clRPGPlayers               *ptrTempPlayer = ptrRootPlayer;
@@ -301,28 +301,27 @@ class clRPGPlayers
                 vecFraudPlayers.push_back(ulDistro(random));
             }
 
-#ifdef  _DEBUG_DEEP_
 /*
+#ifdef  _DEBUG_DEEP_
             for(vector<unsigned long int>::iterator vItr = vecFraudPlayers.begin(); vItr != vecFraudPlayers.end(); ++vItr)
             {
                 cout << *vItr << " .. ";
             }
             cout << endl;
-*/
 #endif
+*/
 
             sort(vecFraudPlayers.begin(), vecFraudPlayers.end());
 
-#ifdef  _DEBUG_DEEP_
 /*
+#ifdef  _DEBUG_DEEP_
             for(vector<unsigned long int>::iterator vItr = vecFraudPlayers.begin(); vItr != vecFraudPlayers.end(); ++vItr)
             {
                 cout << *vItr << " .. ";
             }
             cout << endl;
-*/
 #endif
-
+*/
             for(vector<unsigned long int>::iterator vItr = vecFraudPlayers.begin(); vItr != vecFraudPlayers.end(); ++vItr)
             {
                 while(ptrTempPlayer != NULL)
@@ -354,23 +353,23 @@ class clRPGPlayers
         {
             clRPGPlayers      *ptrTempPlayer = ptrRootPlayer;
 
-#ifdef  _DEBUG_
+#ifdef  _DEBUG_DEEP_
             cout << "[CurrentLocation]: [ptrPrevPlayer], ";
 #endif
             cout << "PlayerID, Level, Score, Units, Gold, Potions, Friends, InventoryItems, isFraudulentPlayer";
-#ifdef  _DEBUG_
+#ifdef  _DEBUG_DEEP_
             cout << ", [ptrNextPlayer]";
 #endif
             cout << endl;
             while(ptrTempPlayer != NULL)
             {
-#ifdef  _DEBUG_
+#ifdef  _DEBUG_DEEP_
                 cout << "[" << hex << setfill('0') << setw(0x10) << ptrTempPlayer << "]: [" << setw(0x10) << ptrTempPlayer->ptrPrevPlayer << dec << "], ";  // Debug data
 #endif
                 cout << ptrTempPlayer->ulPlayerID << ", " << ptrTempPlayer->uLevel << ", " << ptrTempPlayer->ulScore << ", " << ptrTempPlayer->uUnitsCount << ", " \
                      << ptrTempPlayer->uGoldCount << ", " << ptrTempPlayer->uPotionCount << ", " << ptrTempPlayer->uFriendCount << ", " \
                      << ptrTempPlayer->uInventoryItemCount << ", " << ptrTempPlayer->isFraudulentPlayer;
-#ifdef  _DEBUG_
+#ifdef  _DEBUG_DEEP_
                 cout << ", [" << hex << setfill('0') << setw(0x10) << ptrTempPlayer->ptrNextPlayer << "]";                                                  // Debug data
 #endif
                 cout << dec << endl;
@@ -407,30 +406,23 @@ class clPlayerRPGameData
     private:                                            // Intentionally explicit
         unsigned long int           ulRPGPlayerDataRecordCount;
         unsigned long int           ulScores[LEVELS][MINMAXBURST];
-        static clPlayerRPGameData  *ptrSingleInstance;
 
-        clPlayerRPGameData(unsigned long int ulRecordCount = 1000UL) : ulRPGPlayerDataRecordCount(ulRecordCount)
+        clPlayerRPGameData(unsigned long int ulRecordCount = 1000UL):ulRPGPlayerDataRecordCount(ulRecordCount)
         {
             if(ulRecordCount > 0UL)
             {
                 generateGameDesignData();
             }
         }
+        clPlayerRPGameData(const clPlayerRPGameData&) = delete;
+        clPlayerRPGameData& operator=(const clPlayerRPGameData&) = delete;
 
     public:
         static clPlayerRPGameData* getInstance(unsigned long int ulRecordCount = 1000UL)
         {
-            if(ptrSingleInstance == NULL)
-            {
-                ptrSingleInstance = new clPlayerRPGameData(ulRecordCount);
-                if(ptrSingleInstance == NULL)
-                {
-                    cout << endl << "ERROR: OOM or some other exception. Aborting... (from clPlayerRPGameData::getInstance())" << endl;
-                    exit(1);
-                }
-            }
+            static clPlayerRPGameData  objTheOnlyInstance(ulRecordCount);
 
-            return ptrSingleInstance;
+            return &objTheOnlyInstance;
         }
 
 //      void setRPGPlayerDataRecordCount(unsigned long int ulRecordCount = 1000UL) { ulRPGPlayerDataRecordCount = ulRecordCount; }
@@ -455,9 +447,9 @@ class clPlayerRPGameData
                     uniform_int_distribution<unsigned long int> ulMaxScores((nItr * 100), (nItr * 200));
                     uniform_int_distribution<unsigned long int> ulBurstScores((nItr * 201), (nItr * 800));
 
-                    ulScores[nItr][MIN] = ulMinScores(randomSeed0);
-                    ulScores[nItr][MAX] = ulMaxScores(randomSeed1);
-                    ulScores[nItr][MAXBURST] = ulBurstScores(randomSeed2);
+                    ulScores[nItr - 1][MIN] = ulMinScores(randomSeed0);
+                    ulScores[nItr - 1][MAX] = ulMaxScores(randomSeed1);
+                    ulScores[nItr - 1][MAXBURST] = ulBurstScores(randomSeed2);
                 }
 #ifdef _DEBUG_DEEP_
                 cout << nItr << ". => " << ulScores[nItr][MIN] << " .. " << ulScores[nItr][MAX] << " .. " << ulScores[nItr][MAXBURST] << endl;
@@ -465,53 +457,120 @@ class clPlayerRPGameData
             }
         }
 
+        bool checkLevelUp(clRPGPlayers *ptrCurrentPlayer)
+        {
+            bool    checkResult = false;
+//          if(ptrCurrentPlayer->isThisAFraudulentPlayer() == false)
+//          {
+                if(ptrCurrentPlayer->getPlayerScore() > getMaxScore(ptrCurrentPlayer->getPlayerLevel()))
+                {
+                    checkResult = true;
+                }
+//          }
+
+            return checkResult;
+        }
+
         void generatePlayerGamePlayData(void)
         {
             clRPGPlayers   *ptrTempPlayer = NULL;
+            unsigned int    uPlayerLevel = 1;
+            unsigned long int tempPlayerID = 0UL;
             mt19937         randomSeed0(chrono::high_resolution_clock::now().time_since_epoch().count());
-            cout << endl << chrono::high_resolution_clock::now().time_since_epoch().count() << endl;
             mt19937         randomSeed1(chrono::high_resolution_clock::now().time_since_epoch().count());
-            cout << chrono::high_resolution_clock::now().time_since_epoch().count() << endl;
             mt19937         randomSeed2(chrono::high_resolution_clock::now().time_since_epoch().count());
-            cout << chrono::high_resolution_clock::now().time_since_epoch().count() << endl;
             mt19937         randomSeed3(chrono::high_resolution_clock::now().time_since_epoch().count());
-            cout << chrono::high_resolution_clock::now().time_since_epoch().count() << endl;
 
-            uniform_int_distribution<unsigned long int> ulRandomPlayer(1, clRPGPlayers::ulRPGPlayerCount);
+            uniform_int_distribution<unsigned long int> ulRandomPlayer(0, (clRPGPlayers::ulRPGPlayerCount - 1));
 
-            discrete_distribution<unsigned int> uUnits({10, 12, 21, 18, 15, 12, 9, 3}); // Weights for: {-2, -1, 0, 1, 2, 3, 4, 5}
+            discrete_distribution<unsigned int> uUnits({10, 12, 21, 18, 15, 12, 9, 3});         // Weights for: {-2, -1, 0, 1, 2, 3, 4, 5}
             uniform_int_distribution<unsigned int> uBurstUnits(7, 20);
-            discrete_distribution<unsigned int> uGold({13, 17, 21, 20, 17, 9, 3});      // Weights for {-2, -1, 0, 1, 2, 3, 4}
+            discrete_distribution<unsigned int> uGold({13, 17, 21, 20, 17, 9, 3});              // Weights for {-2, -1, 0, 1, 2, 3, 4}
             uniform_int_distribution<unsigned int> uBurstGold(6, 400);
-            discrete_distribution<unsigned int> uPotions({15, 17, 25, 18, 12, 10, 3});  // Weights for {-2, -1, 0, 1, 2, 3, 4}
+            discrete_distribution<unsigned int> uPotions({15, 17, 25, 18, 12, 10, 3});          // Weights for {-2, -1, 0, 1, 2, 3, 4}
             uniform_int_distribution<unsigned int> uBurstPotions(6, 50);
             uniform_int_distribution<unsigned int> uFriends(0, 25);
+            discrete_distribution<unsigned int> uInventoryItems({15, 17, 25, 18, 12, 10, 3});   // Weights for {-2, -1, 0, 1, 2, 3, 4}
+            uniform_int_distribution<unsigned int> uBurstInventoryItems(6, 25);
 
             cout << "[NOTE: Starting player gameplay data dump...]" << endl << endl;
-            cout << "PlayerID, Level, Score, Units, Gold, Potions, Friends, InventoryItems";
+#ifdef  _DEBUG_DEEP_
+            cout << "[CurrentLocation]: [ptrPrevPlayer], ";
+#endif
+            cout << "PlayerID, Level, Score, Units, Gold, Potions, Friends, InventoryItems, isFraudulentPlayer";
+#ifdef  _DEBUG_DEEP_
+            cout << ", [ptrNextPlayer]";
+#endif
+            cout << endl;
+
             while(ulRPGPlayerDataRecordCount-- > 0)
             {
-                ptrTempPlayer = clRPGPlayers::findPlayer(10000UL + ulRandomPlayer(randomSeed0);
+                tempPlayerID = (10000UL + ulRandomPlayer(randomSeed0));
+                ptrTempPlayer = ptrRootPlayer->findPlayer(tempPlayerID);
+
+                if(ptrTempPlayer == NULL)
                 {
-                    if(ptrTempPlayer->isFraudulentPlayer == false)
+                    cout << "ERROR: Unexpected issue. No such player found: " << tempPlayerID << endl;
+                    continue;
+                }
+
+                uPlayerLevel = ptrTempPlayer->getPlayerLevel();
+
+                {
+                    clRPGPlayers objTempPlayer(ptrTempPlayer->getPlayerID());
+                    objTempPlayer = *ptrTempPlayer;
+
+                    if(ptrTempPlayer->isThisAFraudulentPlayer() == false)
                     {
-                        uniform_int_distribution<unsigned long int> ulRandomPlayerScores(ulScores[MIN], ulScores[MAX]);
+                        uniform_int_distribution<unsigned long int> ulRandomPlayerScores(ulScores[uPlayerLevel][MIN], ulScores[uPlayerLevel][MAX]);
+
+                        objTempPlayer.setPlayerScore(ulRandomPlayerScores(randomSeed1));
+                        objTempPlayer.setUnitsCount(uUnits(randomSeed2));
+                        objTempPlayer.setGoldCount(uGold(randomSeed3));
+                        objTempPlayer.setPotionCount(uPotions(randomSeed1));
+                        objTempPlayer.setFriendCount(uFriends(randomSeed2));
+                        objTempPlayer.setInventoryItemCount(uInventoryItems(randomSeed3));
                     }
                     else
                     {
-                        uniform_int_distribution<unsigned long int> ulRandomPlayerScores(ulScores[MAX] + 1, ulScores[MAXBURST]);
+                        uniform_int_distribution<unsigned long int> ulRandomPlayerScores((ulScores[uPlayerLevel][MAX] + 1), ulScores[uPlayerLevel][MAXBURST]);
+
+                        objTempPlayer.setUnitsCount(uBurstUnits(randomSeed1));
+                        objTempPlayer.setPlayerScore(ulRandomPlayerScores(randomSeed2));
+                        objTempPlayer.setGoldCount(uBurstGold(randomSeed3));
+                        objTempPlayer.setPotionCount(uBurstPotions(randomSeed1));
+                        objTempPlayer.setFriendCount(uFriends(randomSeed2));
+                        objTempPlayer.setInventoryItemCount(uBurstInventoryItems(randomSeed3));
                     }
-                    if(ptrTempPlayer != NULL)
+
+#ifdef _DEBUG_DEEP_
+                    cout << "==> Before: ";
+                    ptrTempPlayer->dumpPlayerData();
+#endif
+
+//                  ptrTempPlayer += &objTempPlayer;
+//                  ptrTempPlayer = ptrTempPlayer + &objTempPlayer;
+
+                    ptrTempPlayer->setPlayerLevel(objTempPlayer.getPlayerLevel());
+                    ptrTempPlayer->setPlayerScore(ptrTempPlayer->getPlayerScore() + objTempPlayer.getPlayerScore());
+                    ptrTempPlayer->setUnitsCount(ptrTempPlayer->getUnitsCount() + objTempPlayer.getUnitsCount() - OFFSET);
+                    ptrTempPlayer->setGoldCount(ptrTempPlayer->getGoldCount() + objTempPlayer.getGoldCount() - OFFSET);
+                    ptrTempPlayer->setPotionCount(ptrTempPlayer->getPotionCount() + objTempPlayer.getPotionCount() - OFFSET);
+                    ptrTempPlayer->setFriendCount(ptrTempPlayer->getFriendcount() + objTempPlayer.getFriendcount());
+                    ptrTempPlayer->setInventoryItemCount(ptrTempPlayer->getInventoryItemCount() + objTempPlayer.getInventoryItemCount() - OFFSET);
+
+#ifdef  _DEBUG_DEEP_
+                    cout << "==> After: ";
+                    ptrTempPlayer->dumpPlayerData();
+#endif
+                    if(checkLevelUp(ptrTempPlayer) == true)
                     {
-                        clRPGPlayers objTempPlayer(ptrTempPlayer->ulPlayerID);
-                        cout << endl << "--- Temp";
-                        ptrTempPlayer->dumpPlayerData();
-                        cout << endl << "--- Actual";
-                        objTempPlayer = *ptrTempPlayer;
-                     //
-                        objTempPlayer.dumpPlayerData();
-                        cout << endl << "--- Next";
+#ifdef _DEBUG_DEEP_
+                        cout << "==> Leveling up: ";
+#endif
+                        ptrTempPlayer->setPlayerLevel(ptrTempPlayer->getPlayerLevel() + 1);
                     }
+                    ptrTempPlayer->dumpPlayerData();
                 }
             }
         }
