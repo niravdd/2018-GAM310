@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 #include <cstring>
 #include <cstdlib>
 #include <cstddef>
@@ -207,11 +208,17 @@ class clRPGPlayers
             this->isFraudulentPlayer = objRightPlayer.isFraudulentPlayer;
         }
 
-        void dumpPlayerData(void)
+        void dumpPlayerData(ostream& refOutputfile, ostream& refOutputCSVFile)
         {
 #ifdef  _DEBUG_DEEP_
             cout << "[" << hex << setfill('0') << setw(0x10) << this << "]: [" << setw(0x10) << ptrPrevPlayer << dec << "], ";  // Debug data
 #endif
+            refOutputfile << ulPlayerID << " 1:" << uLevel << " 2:" << ulScore << " 3:" << uUnitsCount << " 4:" \
+                 << uGoldCount << " 5:" << uPotionCount << " 6:" << uFriendCount << " 7:" \
+                 << uInventoryItemCount << " 8:" << isFraudulentPlayer << endl;
+            refOutputCSVFile << ulPlayerID << ", " << uLevel << ", " << ulScore << ", " << uUnitsCount << ", " \
+                 << uGoldCount << ", " << uPotionCount << ", " << uFriendCount << ", " \
+                 << uInventoryItemCount << ", " << isFraudulentPlayer << endl;
             cout << ulPlayerID << ", " << uLevel << ", " << ulScore << ", " << uUnitsCount << ", " \
                  << uGoldCount << ", " << uPotionCount << ", " << uFriendCount << ", " \
                  << uInventoryItemCount << ", " << isFraudulentPlayer;
@@ -476,6 +483,10 @@ class clPlayerRPGameData
             clRPGPlayers   *ptrTempPlayer = NULL;
             unsigned int    uPlayerLevel = 1;
             unsigned long int tempPlayerID = 0UL;
+
+            ofstream         fOutputFile("outputFile", ios::out | ios::trunc);
+            ofstream         fOutputCSVFile("outputFile.csv", ios::out | ios::trunc);
+
             mt19937         randomSeed0(chrono::high_resolution_clock::now().time_since_epoch().count());
             mt19937         randomSeed1(chrono::high_resolution_clock::now().time_since_epoch().count());
             mt19937         randomSeed2(chrono::high_resolution_clock::now().time_since_epoch().count());
@@ -497,6 +508,7 @@ class clPlayerRPGameData
 #ifdef  _DEBUG_DEEP_
             cout << "[CurrentLocation]: [ptrPrevPlayer], ";
 #endif
+            fOutputCSVFile << "PlayerID, Level, Score, Units, Gold, Potions, Friends, InventoryItems, isFraudulentPlayer";
             cout << "PlayerID, Level, Score, Units, Gold, Potions, Friends, InventoryItems, isFraudulentPlayer";
 #ifdef  _DEBUG_DEEP_
             cout << ", [ptrNextPlayer]";
@@ -568,11 +580,17 @@ class clPlayerRPGameData
 #ifdef _DEBUG_DEEP_
                         cout << "==> Leveling up: ";
 #endif
-                        ptrTempPlayer->setPlayerLevel(ptrTempPlayer->getPlayerLevel() + 1);
+                        if(ptrTempPlayer->getPlayerLevel() < LEVELS)
+                        {
+                            ptrTempPlayer->setPlayerLevel(ptrTempPlayer->getPlayerLevel() + 1);
+                        }
                     }
-                    ptrTempPlayer->dumpPlayerData();
+                    ptrTempPlayer->dumpPlayerData(fOutputFile, fOutputCSVFile);
                 }
             }
+
+            fOutputFile.close();
+            fOutputCSVFile.close();
         }
 };
 //------------------------------------------------------------------------------
