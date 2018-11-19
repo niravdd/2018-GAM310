@@ -218,7 +218,7 @@ class clRPGPlayers
                  << uInventoryItemCount << " 8:" << isFraudulentPlayer << endl;
             refOutputCSVFile << ulPlayerID << ", " << uLevel << ", " << ulScore << ", " << uUnitsCount << ", " \
                  << uGoldCount << ", " << uPotionCount << ", " << uFriendCount << ", " \
-                 << uInventoryItemCount << ", " << isFraudulentPlayer << endl;
+                 << uInventoryItemCount << ", " << (isFraudulentPlayer == true ? "True." : "False.") << endl;
             cout << ulPlayerID << ", " << uLevel << ", " << ulScore << ", " << uUnitsCount << ", " \
                  << uGoldCount << ", " << uPotionCount << ", " << uFriendCount << ", " \
                  << uInventoryItemCount << ", " << isFraudulentPlayer;
@@ -508,7 +508,7 @@ class clPlayerRPGameData
 #ifdef  _DEBUG_DEEP_
             cout << "[CurrentLocation]: [ptrPrevPlayer], ";
 #endif
-            fOutputCSVFile << "PlayerID, Level, Score, Units, Gold, Potions, Friends, InventoryItems, isFraudulentPlayer";
+            fOutputCSVFile << "PlayerID, Level, Score, Units, Gold, Potions, Friends, InvItems, Fraud?" << endl;
             cout << "PlayerID, Level, Score, Units, Gold, Potions, Friends, InventoryItems, isFraudulentPlayer";
 #ifdef  _DEBUG_DEEP_
             cout << ", [ptrNextPlayer]";
