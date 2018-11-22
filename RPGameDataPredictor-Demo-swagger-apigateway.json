@@ -1,0 +1,47 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "2018-11-20T05:05:51Z",
+    "title": "RPGameDataPredictor"
+  },
+  "host": "g7vg73nrg6.execute-api.ap-southeast-2.amazonaws.com",
+  "basePath": "/Demo",
+  "schemes": [
+    "https"
+  ],
+  "paths": {
+    "/isvalidrpgamedata": {
+      "post": {
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "schema": {
+              "$ref": "#/definitions/Empty"
+            }
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "uri": "arn:aws:apigateway:ap-southeast-2:lambda:path/2015-03-31/functions/arn:aws:lambda:ap-southeast-2:505314836537:function:invokeSMEndpoint/invocations",
+          "responses": {
+            "default": {
+              "statusCode": "200"
+            }
+          },
+          "passthroughBehavior": "when_no_match",
+          "httpMethod": "POST",
+          "contentHandling": "CONVERT_TO_TEXT",
+          "type": "aws"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Empty": {
+      "type": "object",
+      "title": "Empty Schema"
+    }
+  }
+}
