@@ -15,4 +15,3 @@ Run the cli.sh shell script to run basic tests, or customise it and run your own
 Refer to the Jupyter notebook in the repo as well as the presentation that provides the background.
 
 A couple colleagues also developed a video tutorial that elaborates the proof of concept available here: https://www.aws.training/Details/Video?id=41827
---
