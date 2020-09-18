@@ -1,8 +1,7 @@
 # Proof of Concept
-## To identify/detect anomalies in game transactions using Machine Learning & Sagemaker
-### C++ bot to generate RPG game sample data to train the algorithm
-### Jupyter Notebook, working dataset, Sagemaker endpoint for quick tests included in this working sample
-### 2018-GAM310 - Presented at re:Invent 2018 (GAM 310) and at a couple other AWS summits
+#### To identify/detect anomalies in game transactions using Machine Learning & Sagemaker
+#### C++ bot to generate RPG game sample data to train the algorithm. Jupyter Notebook, working dataset, Sagemaker endpoint for quick tests included in this working sample
+(2018-GAM310 - Presented at re:Invent 2018 (GAM 310) and at a couple other AWS summits)
 
 A working demo for a proof-of-concept to use a basic binary classification algorithm to detect and flag anomalous/fraudulent gameplay transactions in a game report.
 
